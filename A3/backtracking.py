@@ -172,7 +172,39 @@ def FC(unAssignedVars, csp, allSolutions, trace):
     #you must not change the function parameters.
     #Implementing handling of the trace parameter is optional
     #but it can be useful for debugging
-
+    solutions_set = []
+    if unAssignedVars.empty():
+        if trace: print "{} Solution Found".format(csp.name())
+        soln = []
+        for a in csp.variables():
+            soln.append((a, a.getValue()))
+        return [soln]
+    bt_search.nodesExplored += 1
+    solns = []
+    var = unAssignedVars.extract()
+    if trace: print "==>Trying {}".format(var.name())
+    for val in var.curDomain():
+        if trace: print "==> {} = {}".format(var.name(), val)
+        var.setValue(val)
+        noDWO = True
+        for constraint in csp.constraintsOf(var):
+            if constraint.numUnassigned()==1:
+                if FCCheck(constraint, var, val) == "DWO":
+                    noDWO = False
+                    if trace: print "<==No Domain Wipeout\n"
+                    break
+        if noDWO:
+            new_sols = FC(unAssignedVars, csp, allSolutions, trace)
+            if new_sols:
+                solns.extend(new_sols)
+            if len(solns) > 0 and not allSolutions:
+                var.restoreValues(var,val)
+                break
+        var.restoreValues(var,val)
+    var.unAssign()
+    unAssignedVars.insert(var)
+    return solns
+        
     util.raiseNotDefined()
 
 def GacEnforce(constraints, csp, reasonVar, reasonVal):

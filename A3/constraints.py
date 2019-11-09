@@ -1,5 +1,6 @@
 from csp import Constraint, Variable
 import util
+import pdb
 
 class TableConstraint(Constraint):
     '''General type of constraint that can be use to implement any type of
@@ -120,7 +121,18 @@ class QueensTableConstraint(TableConstraint):
     #the existing function signatures.
     def __init__(self, name, qi, qj, i, j):
         self._name = "Queen_" + name
-        util.raiseNotDefined()
+        dom_i = qi.domain()
+        dom_j = qj.domain()
+        assignments = []
+        #conditions are that they cant be in the same row or in diagonals
+        for x in dom_i:
+            for y in dom_j:
+                if x != y:
+                    if abs(x-y) != abs(i-j):
+                        assignments.append([x,y])
+                        assignments.append([y,x])
+        TableConstraint.__init__(self, name, [qi,qj], assignments)
+        #util.raiseNotDefined()
 
 class NeqConstraint(Constraint):
     '''Neq constraint between two variables'''
