@@ -172,7 +172,6 @@ def FC(unAssignedVars, csp, allSolutions, trace):
     #you must not change the function parameters.
     #Implementing handling of the trace parameter is optional
     #but it can be useful for debugging
-    solutions_set = []
     if unAssignedVars.empty():
         if trace: print "{} Solution Found".format(csp.name())
         soln = []
@@ -249,17 +248,16 @@ def GAC(unAssignedVars, csp, allSolutions, trace):
     #You must not change the function parameters.
     #implementing support for "trace" is optional, but it might
     #help you in debugging
-    solutions = []
+    
     if unAssignedVars.empty():
         if trace: print "{} Solution Found".format(csp.name())
-        for var in csp.variables():
-            print var.name(), "=", var.getValue()
         soln = []
         for a in csp.variables():
             soln.append((a, a.getValue()))
         return [soln]
     bt_search.nodesExplored += 1 
     var = unAssignedVars.extract()
+    solutions = []
     if trace: print "==>Trying {}".format(var.name())
     for val in var.curDomain():
         if trace: print "==> {} = {}".format(var.name(), val)
@@ -268,9 +266,9 @@ def GAC(unAssignedVars, csp, allSolutions, trace):
         if GacEnforce(csp.constraintsOf(var), csp, var, val) == "DWO":
             noDWO = False
             if trace: print "<==No Domain Wipeout\n"
-            break
+            #break
         if noDWO:
-            new_sols = GAC(unAssignedVars, csp, solutions, trace)
+            new_sols = GAC(unAssignedVars, csp, allSolutions, trace)
             if new_sols:
                 solutions.extend(new_sols)
             if len(solutions) > 0 and not allSolutions:
