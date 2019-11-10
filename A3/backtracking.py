@@ -215,6 +215,18 @@ def GacEnforce(constraints, csp, reasonVar, reasonVal):
     #your implementation for Question 3 goes in this function body
     #you must not change the function parameters
     #ensure that you return one of "OK" or "DWO"
+    while constraints:
+        constraint = constraints.pop()
+        for variable in constraint.scope():
+            for value in variable.curDomain():
+                if not constraint.hasSupport(variable, value):
+                    variable.pruneValue(value, reasonVar, reasonVal)
+                    if variable.curDomainSize() == 0:
+                        return "DWO"
+                    for recheck in csp.constraintsOf(variable):
+                        if recheck != constraint and not recheck in constraints:
+                            constraints.append(recheck)
+    return "OK"
     util.raiseNotDefined()
 
 def GAC(unAssignedVars, csp, allSolutions, trace):
@@ -237,5 +249,37 @@ def GAC(unAssignedVars, csp, allSolutions, trace):
     #You must not change the function parameters.
     #implementing support for "trace" is optional, but it might
     #help you in debugging
+    solutions = []
+    if unAssignedVars.empty():
+        if trace: print "{} Solution Found".format(csp.name())
+        for var in csp.variables():
+            print var.name(), "=", var.getValue()
+        soln = []
+        for a in csp.variables():
+            soln.append((a, a.getValue()))
+        return [soln]
+    bt_search.nodesExplored += 1 
+    var = unAssignedVars.extract()
+    if trace: print "==>Trying {}".format(var.name())
+    for val in var.curDomain():
+        if trace: print "==> {} = {}".format(var.name(), val)
+        var.setValue(val)
+        noDWO = True
+        if GacEnforce(csp.constraintsOf(var), csp, var, val) == "DWO":
+            noDWO = False
+            if trace: print "<==No Domain Wipeout\n"
+            break
+        if noDWO:
+            new_sols = GAC(unAssignedVars, csp, solutions, trace)
+            if new_sols:
+                solutions.extend(new_sols)
+            if len(solutions) > 0 and not allSolutions:
+                var.restoreValues(var, val)
+                break
+        var.restoreValues(var, val)
+    var.unAssign()
+    unAssignedVars.insert(var)
+    return solutions
+
 
     util.raiseNotDefined()
